@@ -1,3 +1,5 @@
+# fazer função para conexão com o sqlite
+# fazer função pra criar as tabelas (caso ainda nao existam)
 import sqlite3
 
 DB_NAME = "alunos.db"
@@ -11,11 +13,14 @@ def criar_tabelas():
     cur = con.cursor()
 
     # Tabela Aluno
+    #Formato da data de nascimento: yyyy-mm-dd (ano-mês-dia)
     cur.execute("""
     CREATE TABLE IF NOT EXISTS aluno (
         matricula TEXT PRIMARY KEY,
         nome TEXT NOT NULL,
-        dt_nascimento TEXT NOT NULL
+        dt_nascimento TEXT NOT NULL CHECK (
+            dt_nascimento LIKE '____-__-__'
+        )
     );
     """)
 
