@@ -5,6 +5,10 @@ import database.disciplina_db as disciplina_db
 import database.nota_db as nota_db
 from exportacao import exportar
 
+#criar a aba principal - feito
+# organizar em abas - feito
+#mostrar uma tabela pra cada aba, que mostra como estão as tabelas a cada operação
+
 # ============================================================
 # JANELA PRINCIPAL
 # ============================================================
@@ -16,7 +20,6 @@ def iniciar_gui():
     aba_control = ttk.Notebook(root)
     aba_control.pack(fill="both", expand=True)
 
-    # Criar as abas
     frame_aluno = ttk.Frame(aba_control)
     frame_disciplina = ttk.Frame(aba_control)
     frame_notas = ttk.Frame(aba_control)
@@ -27,7 +30,6 @@ def iniciar_gui():
     aba_control.add(frame_notas, text="Notas")
     aba_control.add(frame_exportar, text="Exportar Dados")
 
-    # Inicializar UIs
     tela_aluno(frame_aluno)
     tela_disciplina(frame_disciplina)
     tela_nota(frame_notas)
@@ -37,7 +39,7 @@ def iniciar_gui():
 
 
 # ============================================================
-# ABA ALUNO
+# -------------------------ABA ALUNO--------------------------
 # ============================================================
 def tela_aluno(frame):
     frame.columnconfigure(0, weight=1)
@@ -250,11 +252,52 @@ def tela_nota(frame):
 # ============================================================
 # ABA EXPORTAR
 # ============================================================
-# ============================================================
-# ABA EXPORTAR
-# ============================================================
-def tela_exportar(frame):
+# def tela_exportar(frame):
 
+#     ttk.Label(frame, text="Exportar dados do sistema", font=("Arial", 14)).pack(pady=20)
+
+#     lista_tabelas = ["aluno", "disciplina", "nota"]
+#     lista_formatos = ["csv", "json", "txt"]
+
+#     cb_tabelas = ttk.Combobox(frame, values=lista_tabelas, state="readonly")
+#     cb_formatos = ttk.Combobox(frame, values=lista_formatos, state="readonly")
+#     cb_tabelas.pack(pady=5)
+#     cb_formatos.pack(pady=5)
+
+#     def exportar_dados():
+#         tabela = cb_tabelas.get()
+#         formato = cb_formatos.get()
+
+#         if tabela == "":
+#             return messagebox.showwarning("Aviso", "Selecione uma tabela.")
+#         if formato == "":
+#             return messagebox.showwarning("Aviso", "Selecione um formato.")
+
+#         # chamando a função de listar os dados das tabelas
+#         if tabela == "aluno":
+#             dados = aluno_db.listar_alunos()
+#         elif tabela == "disciplina":
+#             dados = disciplina_db.listar_disciplinas()
+#         else:
+#             dados = nota_db.listar_notas()
+
+#         # no caso de não ter nenhum dado pra exportar
+#         if not dados:
+#             return messagebox.showwarning("Aviso", "Não há dados para exportar.")
+
+#         # gerando o nome do arquivo
+#         nome_arq = f"{tabela}.{formato}"
+
+#         try:
+#             # utiliza a função de exportar do arquivo exportacao.py
+#             caminho = exportar(dados, nome_arq, formato)
+#             messagebox.showinfo("OK", f"Arquivo exportado com sucesso:\n{caminho}")
+#         except Exception as e:
+#             messagebox.showerror("Erro", f"Ocorreu um erro ao exportar: {e}")
+
+#     # botão para exportar
+#     ttk.Button(frame, text="Exportar", command=exportar_dados).pack(pady=20)
+def tela_exportar(frame):
     ttk.Label(frame, text="Exportar dados do sistema", font=("Arial", 14)).pack(pady=20)
 
     lista_tabelas = ["aluno", "disciplina", "nota"]
@@ -265,6 +308,24 @@ def tela_exportar(frame):
     cb_tabelas.pack(pady=5)
     cb_formatos.pack(pady=5)
 
+    # --- Combobox dos alunos (aparecerá só quando a tabela=nota) ---
+    lista_alunos = ["Todos os alunos"] + [f"{a[0]} - {a[1]}" for a in aluno_db.listar_alunos()]
+    cb_alunos = ttk.Combobox(frame, values=lista_alunos, state="readonly")
+    cb_alunos.pack(pady=5)
+    cb_alunos.pack_forget()  # esconde no começo
+
+    # Quando mudar a tabela, mostrar ou esconder o campo de alunos
+    def ao_mudar_tabela(event):
+        if cb_tabelas.get() == "nota":
+            cb_alunos.pack(pady=5)
+        else:
+            cb_alunos.pack_forget()
+
+    cb_tabelas.bind("<<ComboboxSelected>>", ao_mudar_tabela)
+
+    # -------------------------
+    # Função de exportação
+    # -------------------------
     def exportar_dados():
         tabela = cb_tabelas.get()
         formato = cb_formatos.get()
@@ -274,27 +335,39 @@ def tela_exportar(frame):
         if formato == "":
             return messagebox.showwarning("Aviso", "Selecione um formato.")
 
-        # Chamar a função de listar dados
-        if tabela == "aluno":
-            dados = aluno_db.listar_alunos()  # Certifique-se de que isso retorna uma lista de listas ou tuplas
-        elif tabela == "disciplina":
-            dados = disciplina_db.listar_disciplinas()  # Certifique-se de que isso retorna uma lista de listas ou tuplas
-        else:
-            dados = nota_db.listar_notas()  # Certifique-se de que isso retorna uma lista de listas ou tuplas
+        #exportação de NOTAS
+        if tabela == "nota":
+            aluno_selecionado = cb_alunos.get()
 
-        # Verificar se dados não estão vazios
-        if not dados:
-            return messagebox.showwarning("Aviso", "Não há dados para exportar.")
+            if aluno_selecionado == "":
+                return messagebox.showwarning("Aviso", "Selecione um aluno ou 'Todos os alunos'.")
 
-        # Gerar o nome do arquivo de acordo com a tabela e formato
-        nome_arq = f"{tabela}.{formato}"
+            #todas as notas
+            if aluno_selecionado == "Todos os alunos":
+                dados = nota_db.listar_notas()
 
-        try:
-            # Chamar a função de exportação (agora usando a função importada de exportacao.py)
+            #notas de apenas UM aluno
+            else:
+                matricula = aluno_selecionado.split(" - ")[0]
+                dados = nota_db.listar_notas_por_aluno(matricula)
+
+            if not dados:
+                return messagebox.showinfo("Aviso", "Não há notas para exportar.")
+
+            nome_arq = f"notas_{'todos' if aluno_selecionado=='Todos os alunos' else matricula}.{formato}"
             caminho = exportar(dados, nome_arq, formato)
-            messagebox.showinfo("OK", f"Arquivo exportado com sucesso:\n{caminho}")
-        except Exception as e:
-            messagebox.showerror("Erro", f"Ocorreu um erro ao exportar: {e}")
+            return messagebox.showinfo("OK", f"Arquivo exportado:\n{caminho}")
 
-    # Botão para exportar
+        if tabela == "aluno":
+            dados = aluno_db.listar_alunos()
+        elif tabela == "disciplina":
+            dados = disciplina_db.listar_disciplinas()
+
+        if not dados:
+            return messagebox.showinfo("Aviso", "Não há dados para exportar.")
+
+        nome_arq = f"{tabela}.{formato}"
+        caminho = exportar(dados, nome_arq, formato)
+        messagebox.showinfo("OK", f"Arquivo exportado com sucesso:\n{caminho}") # mostrar o caminho do arquivo exportado
+
     ttk.Button(frame, text="Exportar", command=exportar_dados).pack(pady=20)
