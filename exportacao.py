@@ -2,15 +2,19 @@ import os
 import csv
 import json
 
+# verificar o formato
+# garantir q a pasta existe
+# abrir o arquivo e escrever os dados dentro do arquivo
+
 def exportar(dados, nome_arquivo, formato):
     pasta = "dados"
-    os.makedirs(pasta, exist_ok=True)  # Cria a pasta 'dados', se não existir
+    os.makedirs(pasta, exist_ok=True)  # verifica se a pasta "dados" existe, caso não exista essa função cria a pasta
 
     caminho = os.path.join(pasta, nome_arquivo)  # Caminho completo do arquivo
 
     try:
         if formato == "csv":
-            # Verifique se os dados estão no formato adequado para CSV (listas ou tuplas)
+            # verifica se os dados estão no formado q o CSV aceita (listas ou tuplas)
             if not all(isinstance(i, (list, tuple)) for i in dados):
                 raise ValueError("Os dados para CSV devem ser uma lista de listas ou tuplas.")
             with open(caminho, "w", newline="", encoding="utf-8") as f:
@@ -24,9 +28,10 @@ def exportar(dados, nome_arquivo, formato):
         elif formato == "txt":
             with open(caminho, "w", encoding="utf-8") as f:
                 for linha in dados:
-                    # Formata cada linha para melhorar a legibilidade
+                    # Formata as linhas para ajudar a entender o arquivo
                     f.write(" | ".join(str(x) for x in linha) + "\n")
 
+        #esse else nem vai ser usado, pq não tem como escolher outra opção além dessas 3 na interface
         else:
             raise ValueError("Formato não suportado. Use 'csv', 'json' ou 'txt'.")
 
@@ -34,4 +39,4 @@ def exportar(dados, nome_arquivo, formato):
         print(f"Erro ao exportar dados: {e}")
         return None
 
-    return caminho  # Retorna o caminho do arquivo gerado
+    return caminho  # retorna o caminho do arquivo gerado (pra mostrar na interface)
