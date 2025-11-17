@@ -24,6 +24,20 @@ def listar_notas():
     con.close()
     return dados
 
+def listar_notas_por_aluno(matricula):
+    con = conectar()
+    cur = con.cursor()
+    cur.execute("""
+        SELECT a.nome, d.nome, n.valor
+        FROM nota n
+        JOIN aluno a ON n.matricula = a.matricula
+        JOIN disciplina d ON n.disciplina_id = d.id
+        WHERE n.matricula = ?
+    """, (matricula,))
+    dados = cur.fetchall()
+    con.close()
+    return dados
+
 
 def atualizar_nota(matricula, disciplina_id, valor):
     con = conectar()
@@ -46,3 +60,4 @@ def excluir_nota(matricula, disciplina_id):
     )
     con.commit()
     con.close()
+
